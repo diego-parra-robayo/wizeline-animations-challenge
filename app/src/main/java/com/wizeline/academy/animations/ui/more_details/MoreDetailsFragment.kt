@@ -1,6 +1,7 @@
 package com.wizeline.academy.animations.ui.more_details
 
 import android.os.Bundle
+import android.transition.TransitionInflater
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,6 +19,12 @@ class MoreDetailsFragment : Fragment() {
     private val binding get() = _binding!!
     private val viewModel: MoreDetailsViewModel by viewModels()
     private val args: MoreDetailsFragmentArgs by navArgs()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        sharedElementEnterTransition = TransitionInflater.from(requireContext())
+            .inflateTransition(android.R.transition.move)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
