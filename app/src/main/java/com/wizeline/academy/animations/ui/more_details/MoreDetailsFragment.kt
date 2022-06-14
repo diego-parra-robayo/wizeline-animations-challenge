@@ -1,10 +1,16 @@
 package com.wizeline.academy.animations.ui.more_details
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.transition.TransitionInflater
 import android.view.LayoutInflater
+import android.view.MotionEvent
+import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.ViewGroup
+import androidx.dynamicanimation.animation.DynamicAnimation
+import androidx.dynamicanimation.animation.SpringAnimation
+import androidx.dynamicanimation.animation.SpringForce
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
@@ -41,5 +47,56 @@ class MoreDetailsFragment : Fragment() {
         viewModel.title.observe(viewLifecycleOwner) { binding.tvTitle.text = it }
         viewModel.content.observe(viewLifecycleOwner) { binding.tvFullTextContent.text = it }
         viewModel.fetchData(args.contentIndex)
+        setupZoomAnimation()
     }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private fun setupZoomAnimation() {
+        val scaleXAnimation = createSpringAnimation(
+            binding.ivImageDetailLarge, SpringAnimation.SCALE_X
+        )
+        val scaleYAnimation = createSpringAnimation(
+            binding.ivImageDetailLarge, SpringAnimation.SCALE_Y
+        )
+        val scaleGestureDetector = createScaleGestureDetector()
+
+        binding.ivImageDetailLarge.setOnTouchListener { _, event ->
+            if (event.action == MotionEvent.ACTION_UP) {
+                scaleXAnimation.start()
+                scaleYAnimation.start()
+            } else {
+                // cancel animations so we can grab the view during previous animation
+                scaleXAnimation.cancel()
+                scaleYAnimation.cancel()
+                // pass touch event to ScaleGestureDetector
+                scaleGestureDetector.onTouchEvent(event)
+            }
+            true
+        }
+    }
+
+    private fun createSpringAnimation(
+        view: View, property: DynamicAnimation.ViewProperty
+    ): SpringAnimation {
+        val animation = SpringAnimation(view, property)
+        val spring = SpringForce(1f)
+        spring.stiffness = SpringForce.STIFFNESS_MEDIUM
+        spring.dampingRatio = SpringForce.DAMPING_RATIO_LOW_BOUNCY
+        animation.spring = spring
+        return animation
+    }
+
+    private fun createScaleGestureDetector(): ScaleGestureDetector {
+        var scaleFactor = 1f
+        return ScaleGestureDetector(requireContext(),
+            object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+                override fun onScale(detector: ScaleGestureDetector): Boolean {
+                    scaleFactor *= detector.scaleFactor
+                    binding.ivImageDetailLarge.scaleX *= scaleFactor
+                    binding.ivImageDetailLarge.scaleY *= scaleFactor
+                    return true
+                }
+            })
+    }
+
 }
